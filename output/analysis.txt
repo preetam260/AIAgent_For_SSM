@@ -1,0 +1,119 @@
+SMART SOCIETY / APARTMENT MANAGEMENT SYSTEM
+REQUIREMENTS ANALYSIS AND ARCHITECTURAL BLUEPRINT
+Prepared by: Senior Enterprise Systems Architect
+
+
+1. FUNCTIONAL REQUIREMENTS
+
+The following is a detailed breakdown of the functional requirements categorized by module, including structural analysis and the identification of vague or ambiguous specifications.
+
+1.1 Resident Module
+- The system must support the onboarding and profile management of residents (owners and tenants).
+- The system must allow administrators to assign residents to specific units/apartments.
+- The system must provide role-based access control (RBAC) distinguishing between Super Admins, Society Committee Members, Residents, and Tenants.
+- Residents must be able to view their unit details, family members, and associated vehicles.
+
+1.2 Visitor Module
+- Residents must be able to pre-register visitors (guests, delivery personnel, home services) with details such as name, contact number, vehicle details, and expected arrival date/time.
+- The system must log all visitor check-ins and check-outs.
+- Security personnel must be able to view and verify pre-registered visitors.
+
+1.3 QR Visitor Entry
+- The system must generate a unique, secure QR code upon visitor pre-registration.
+- The visitor must be able to present this QR code at the entry gate.
+- The gate security application must scan and validate the QR code to allow entry.
+- FLAG - VAGUE: The hardware and scanning environment are unspecified. It is unclear if security guards will use a dedicated mobile application, a responsive web page on a mobile device, or a hardware scanner integrated with the system. Additionally, the exact lifespan, expiration policy, and single-use/multi-use status of the QR codes are not defined.
+
+1.4 Maintenance Billing Module
+- The system must generate recurring maintenance bills for apartment units.
+- Residents must be able to view their current invoices, payment history, and pending dues.
+- FLAG - VAGUE: The calculation engine rules are missing. It is not specified if billing is calculated as a flat rate, based on the square footage of the unit, or dynamically calculated based on individual utility meters (e.g., water, electricity). Furthermore, it is not clear if automatic late-fee generation is required, or if there is a requirement to integrate with specific regional payment gateways (e.g., Stripe, PayPal, Razorpay) to facilitate online payments.
+
+1.5 Facility Booking Module
+- The system must list all common facilities (e.g., clubhouse, swimming pool, tennis court) with their availability schedules.
+- Residents must be able to book these facilities for specific time slots.
+- FLAG - VAGUE: The booking policies, approval workflows, and pricing rules are undefined. It is unclear if some facilities require administrative approval, if they are free or paid, and how cancellation, refund, and double-booking conflict resolution policies should behave.
+
+1.6 Push Announcements Module
+- Administrators must be able to create and broadcast society-wide or tower-specific announcements.
+- Residents must receive these announcements instantly.
+- FLAG - VAGUE: The communication medium is not defined. Since the frontend is specified as an Angular web application, "push announcements" could refer to real-time Web Push Notifications (using service workers), in-app notifications, SMS, Email, or mobile push notifications (which would require a native shell like Ionic/Capacitor or Firebase Cloud Messaging integration).
+
+
+2. NON-FUNCTIONAL REQUIREMENTS
+
+To deliver an enterprise-grade platform, the system must adhere to strict performance, security, and scalability benchmarks.
+
+2.1 Performance
+- API Response Time: Under normal load, 95% of read operations must return a response in under 200 milliseconds, and write operations must complete in under 500 milliseconds.
+- Database Query Performance: Read queries must utilize optimized indexes. No table scans should occur on core transaction tables (Visitor logs, Billing).
+- Page Load Time: The Angular web application must achieve a Lighthouse Performance score of 90+ on desktop and mobile viewports.
+
+2.2 Scalability
+- Architectural Scalability: The ASP.NET Core Web API must be stateless to allow horizontal scaling behind an Application Load Balancer.
+- Database Scalability: PostgreSQL should be configured with a connection pooling mechanism (e.g., PgBouncer) and structured to support read-replicas for heavy reporting/billing queries if required in the future.
+- Caching: Implement an in-memory or distributed cache (e.g., Redis) for static data, active visitor sessions, and facility booking availability states to reduce database load.
+
+2.3 Security
+- Authentication & Authorization: Implement industry-standard OAuth2 / OpenID Connect protocol using JSON Web Tokens (JWT) with secure, HTTP-only, SameSite cookies.
+- Data Encryption: All data in transit must be encrypted using TLS 1.3. Sensitive database columns (e.g., resident phone numbers, identification documents) must be encrypted at rest using AES-256.
+- QR Code Security: QR codes must contain cryptographically signed tokens (e.g., HMAC-SHA256) to prevent tampering, unauthorized generation, or spoofing.
+- Network Security: Protection against standard web vulnerabilities (SQL Injection, Cross-Site Scripting, Cross-Site Request Forgery) using native ASP.NET Core security middleware.
+
+2.4 Availability and Reliability
+- Uptime: The production system must target 99.9% uptime (excluding planned maintenance windows).
+- Disaster Recovery: Automated daily backups of the PostgreSQL database must be maintained, with a Recovery Point Objective (RPO) of 24 hours and a Recovery Time Objective (RTO) of 4 hours.
+- Fault Tolerance: Integration points with external systems (such as email, SMS, and payment gateways) must implement transient fault handling and retry patterns (e.g., using Polly in ASP.NET Core).
+
+2.5 Compatibility
+- Device Compatibility: The Angular application must be designed with a Mobile-First Responsive layout, fully compatible with modern iOS and Android mobile browsers, as well as desktop browsers (Chrome, Safari, Firefox, Edge).
+- Browser Compatibility: Support for the last two major versions of all evergreen web browsers.
+
+
+3. POTENTIAL RISKS
+
+3.1 Technical Risks
+- Gate Connectivity and QR Scanner Latency: Security gates often suffer from poor Wi-Fi or cellular connectivity. If the guard's device cannot communicate with the cloud server in real-time, QR scanning and guest validation will fail, causing queue build-up at the gate.
+- Concurrent Facility Booking Conflicts: High demand for peak slots (e.g., clubhouse bookings during holidays) may cause race conditions where two residents attempt to book the same slot simultaneously.
+- Real-Time Web Push Delivery: Web push notifications on mobile devices (especially iOS Safari) can be unreliable due to aggressive operating system power-saving policies, which may block background service workers.
+
+3.2 Business Risks
+- Adoption Barrier for Security Personnel: Security guards may find complex digital interfaces difficult to navigate, leading to manual workarounds, bypasses of the visitor verification process, and customer dissatisfaction.
+- Regulatory and Privacy Compliance: Collecting resident and visitor personal data (names, phone numbers, vehicle license plates, photos) triggers strict compliance mandates under regional data protection laws (e.g., GDPR, CCPA, or regional equivalents). Non-compliance poses significant legal risk.
+- Financial Reconciliation Failures: Discrepancies between payment gateway reports and database records (e.g., due to network dropouts mid-transaction) can lead to legal disputes or accounting overhead.
+
+3.3 Deadline Risks
+- Scope Creep in Billing Engine: Building a custom, flexible billing system that accommodates various dynamic calculation models can easily exceed the project timeline.
+- Integration Bottlenecks: Delays in acquiring sandbox environments, API keys, and approvals from third-party SMS, Email, and payment gateway providers can halt end-to-end integration testing.
+
+
+4. ASSUMPTIONS
+
+- Deployment Environment: The system will be hosted on a cloud infrastructure provider (e.g., Azure, AWS, or GCP) that supports managed PostgreSQL services, containers, and serverless background tasks.
+- Frontend Client: The Angular application will be a web-based Single Page Application (SPA). It will not be deployed as a native mobile application on the Apple App Store or Google Play Store during this phase, although it will be fully mobile-responsive.
+- Internet Connectivity: The security guard station at the apartment complex will have a reliable internet-connected device (smartphone, tablet, or PC) equipped with a functional camera or attached USB scanner to read QR codes.
+- Transaction processing: Payment gateway transaction charges will be passed directly to the resident or absorbed by the society association; processing fees calculation logic is out of scope for the core engine.
+- Push Notifications: "Push announcements" will be built utilizing Web Push Protocols and Firebase Cloud Messaging (FCM) to deliver messages to browsers, backed by email notifications as a reliable fallback.
+
+
+5. QUESTIONS TO THE CLIENT
+
+To finalize the system architecture and provide an accurate estimation, please clarify the following aspects of the requirement spec:
+
+5.1 Regarding Visitors & QR Entry:
+- Will security personnel use an Android/iOS mobile device web browser to scan QR codes, or will they utilize physical hardware scanners connected to a gate computer?
+- What is the expected behavior when a QR code is scanned offline? Should the system allow emergency overrides?
+- What are the expiration rules for the generated visitor QR codes (e.g., single-entry only, valid for 2 hours, valid only on the date of reservation)?
+
+5.2 Regarding Maintenance Billing:
+- What is the exact formula for billing calculation? Is it a fixed fee per unit, a variable fee based on unit size (square feet), or does it require dynamic integration with utility meters?
+- Which specific payment gateway providers do you require for integration (e.g., Stripe, PayPal, local bank APIs)?
+- Do you require automated penalty/late-fee calculation rules, and should the system support recurring direct debit payments?
+
+5.3 Regarding Push Announcements:
+- Are push notifications required to be received even when the resident's phone screen is locked and the web browser is closed? If so, should we develop a progressive web app (PWA) with native web push registration, or do you intend to package the Angular app into a mobile wrapper (like Cordova/Capacitor)?
+- Should announcements be backed up by alternative channels such as automated SMS or Email for critical notices?
+
+5.4 Regarding Facility Booking:
+- Are any of the facilities paid (requiring integration with the billing/payment module), or are all bookings free of charge?
+- What are the booking cancellation windows, and is there an approval workflow required where a committee member must manually approve bookings?

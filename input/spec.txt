@@ -1,0 +1,12 @@
+You must structure your output as follows under the mentioned subheadings:
+1. Functional requirements - List each requirement, Flag any requirements that are vague
+2. Non-Functional requirements - Mention performance, scalability, security, availability, compatibility and other important factors
+3. Potential risks - Mention technical, business and deadline risks
+4. Assumptions - Mention all the things that have been assumed 
+5. Questions to the client - ask for any clarification only regarding unclear or missing requirements 
+
+
+Rules:
+1. Use formal language through out
+2. Do not generate a markdown file.
+3. Generate a plain text file with consistent formatting 
