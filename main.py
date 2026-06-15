@@ -80,22 +80,21 @@ content = generate_email(clientrequirements, specfile)
 print(content)
 mailbody = f"""
 
-        Dear Client, 
+Dear Client, 
 
-        Thank you for sharing your requirements for the Smart Society / Apartment 
-        Management System. We have reviewed your brief and prepared a structured 
-        analysis document for your reference.
+Thank you for sharing your requirements for the Smart Society / Apartment 
+Management System. We have reviewed your brief and prepared a structured 
+analysis document for your reference.
 
-        Kindly review the following sections covering our understanding of your 
-        requirements, potential risks, and a few clarification questions at the end 
-        that we would appreciate your input on before we proceed further.
+Kindly review the following sections covering our understanding of your 
+requirements, potential risks, and a few clarification questions at the end 
+that we would appreciate your input on before we proceed further.
 
-        {content}
+{content}
 
-        We look forward to your response. Feel free to reach out any time necessary.
-        Regards,
-        Preetam.
-
+We look forward to your response. Feel free to reach out any time necessary.
+Regards,
+Preetam.
 
 """
 
